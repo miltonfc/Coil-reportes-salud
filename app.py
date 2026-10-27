@@ -90,7 +90,8 @@ def crear_pdf(titulo, df, subtitulo="Documento confidencial · COIL Reportes de 
 
 
 def pantalla_acceso():
-    st.markdown("<div style='text-align:center;padding:28px 0 8px'><div style='font-size:52px'>🏥</div></div>", unsafe_allow_html=True)
+    stand.logos(60, centrado=True)
+    st.markdown("<div style='text-align:center;padding:18px 0 4px'><div style='font-size:52px'>🏥</div></div>", unsafe_allow_html=True)
     st.title("Reportes de salud rural")
     st.caption("Acceso seguro · Pacientes, promotores y equipo médico")
     a, b = st.columns([1, 1])
@@ -164,6 +165,7 @@ else:
 with st.sidebar:
     st.title("🏥 Reportes de salud rural")
     st.caption("Proyecto COIL · UCompensar – UNICDA")
+    stand.logos(26, centrado=True)
     st.caption("Sesión: " + {"usuario": "Paciente " + auth.get("pid", ""), "promotor": "Promotor de salud",
                              "medico": "Equipo médico"}[rol_actual])
     pagina = st.radio("Módulo", PAGINAS, label_visibility="collapsed")

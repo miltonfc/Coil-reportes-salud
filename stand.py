@@ -6,8 +6,11 @@
   que van llegando, actualizándose solos.
 - aviso_reportes_nuevos(): avisa en la bandeja del médico cuando llegan reportes nuevos.
 """
+import base64
 import os
+from functools import lru_cache
 from html import escape
+from pathlib import Path
 
 import segno
 import streamlit as st
@@ -41,6 +44,28 @@ def qr_svg(texto: str, escala: int = 9) -> str:
     return segno.make(texto, error="m").svg_inline(scale=escala, dark="#123b50", light="#ffffff", border=2)
 
 
+IMG = Path(__file__).resolve().parent / "img"
+
+
+@lru_cache(maxsize=None)
+def _img64(nombre: str) -> str:
+    return base64.b64encode((IMG / nombre).read_bytes()).decode()
+
+
+def logos_html(alto: int = 44, fondo: bool = True, centrado: bool = False) -> str:
+    """Logos de UCompensar y UNICDA lado a lado (siempre sobre blanco, para que se lean en cualquier fondo)."""
+    imgs = "".join(f"<img src='data:image/png;base64,{_img64(n)}' alt='{a}' style='height:{alto}px;width:auto;"
+                   f"max-width:46%;object-fit:contain'>" for n, a in (("ucompensar.png", "UCompensar"),
+                                                                     ("unicda.png", "UNICDA")))
+    caja = "background:white;border-radius:14px;padding:10px 16px;box-shadow:0 2px 10px #123b5014;" if fondo else ""
+    return (f"<div style='display:flex;align-items:center;gap:{alto // 2}px;flex-wrap:nowrap;"
+            f"justify-content:{'center' if centrado else 'flex-start'};{caja}'>{imgs}</div>")
+
+
+def logos(alto: int = 44, fondo: bool = True, centrado: bool = False) -> None:
+    st.markdown(logos_html(alto, fondo, centrado), unsafe_allow_html=True)
+
+
 def tarjeta(prioridad: str, titulo: str, cuerpo: str) -> None:
     c = COLOR[prioridad]
     st.markdown(
@@ -69,7 +94,8 @@ def pagina_visitante() -> None:
         seguimiento_visitante(visita)
         return
 
-    st.markdown("<div style='font-size:46px;line-height:1'>🏡 ➜ 🏥</div>", unsafe_allow_html=True)
+    logos(34, centrado=True)
+    st.markdown("<div style='font-size:40px;line-height:1;margin-top:14px'>🏡 ➜ 🏥</div>", unsafe_allow_html=True)
     st.title("Hoy eres un paciente de la vereda")
     st.caption("Proyecto COIL · UCompensar (Colombia) – UNICDA (República Dominicana). "
                "Demostración académica: los valores son inventados y nada de esto es un diagnóstico.")
@@ -127,6 +153,7 @@ def pagina_visitante() -> None:
 
 def seguimiento_visitante(v: dict) -> None:
     pri = v["prioridad"]
+    logos(30, centrado=True)
     st.markdown(f"<div style='font-size:46px;line-height:1'>{ICONO[pri]}</div>", unsafe_allow_html=True)
     st.title(f"{escape(v['alias'])}, tu reporte es el #{v['rid']}")
     explicacion = {
@@ -184,6 +211,13 @@ def estado_en_vivo(rid: int) -> None:
 def pantalla_stand() -> None:
     st.markdown("<style>.block-container{padding-top:1.5rem;max-width:100%}</style>", unsafe_allow_html=True)
     url = url_visitante()
+    a, b = st.columns([1, 2.2], gap="large", vertical_alignment="center")
+    with a:
+        logos(46, centrado=True)
+    with b:
+        st.markdown("<div style='color:#4a6572;font-size:15px'>Proyecto COIL · UCompensar (Colombia) – "
+                    "UNICDA (República Dominicana) · Sistema de reportes de salud vereda → hospital rural</div>",
+                    unsafe_allow_html=True)
     izq, der = st.columns([1, 2.2], gap="large")
     with izq:
         st.markdown(
